@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Harsh Patel — Systems &amp; Security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0E13;
+    --bg-panel:#11161D;
+    --bg-panel-2:#0F1319;
+    --text:#E7ECEF;
+    --text-muted:#8592A0;
+    --text-dim:#5C6773;
+    --amber:#FFB020;
+    --teal:#4FD1C5;
+    --border:rgba(231,236,239,0.10);
+    --border-strong:rgba(231,236,239,0.18);
+    --danger:#FF6B5E;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:clip;
+  }
+  ::selection{background:var(--amber);color:#0B0E13;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  a{color:inherit;text-decoration:none;}
+
+  /* faint grid backdrop */
+  .grid-bg{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      linear-gradient(rgba(231,236,239,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(231,236,239,0.035) 1px, transparent 1px);
+    background-size:42px 42px;
+    mask-image:radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+  }
+
+  .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 24px;}
+
+  /* ---------- NAV ---------- */
+  header{
+    position:sticky;top:0;z-index:50;
+    background:rgba(11,14,19,0.82);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  nav{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;max-width:1180px;margin:0 auto;}
+  .logo{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:1.05rem;letter-spacing:0.02em;display:flex;align-items:center;gap:8px;}
+  .logo .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);}
+  .nav-links{display:flex;gap:32px;align-items:center;}
+  .nav-links a{
+    font-family:'IBM Plex Mono',monospace;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;
+    color:var(--text-muted);transition:color .2s ease;
+  }
+  .nav-links a:hover{color:var(--amber);}
+  .status-pill{
+    display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;
+    letter-spacing:0.06em;text-transform:uppercase;color:var(--teal);border:1px solid var(--border-strong);
+    padding:6px 12px;border-radius:100px;
+  }
+  .status-pill .blip{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 1.8s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(79,209,197,0.5);}50%{opacity:.5;box-shadow:0 0 0 5px rgba(79,209,197,0);}}
+  .mobile-nav-toggle{display:none;background:none;border:1px solid var(--border-strong);color:var(--text);width:38px;height:38px;border-radius:8px;font-size:1.1rem;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;padding:64px 0 40px;min-height:82vh;display:flex;flex-direction:column;justify-content:center;
+    overflow:hidden;
+  }
+  #hero-canvas{
+    position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0.85;
+  }
+  .hero .wrap-inner{position:relative;z-index:2;}
+  .tilt-card{will-change:transform;transform-style:preserve-3d;transition:transform .12s ease-out, border-color .25s ease;}
+  .tilt-card:hover{border-color:var(--border-strong);}
+  .tilt-glow{
+    position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .25s ease;
+    background:radial-gradient(220px circle at var(--mx,50%) var(--my,50%), rgba(255,176,32,0.12), transparent 60%);
+  }
+  .tilt-card:hover .tilt-glow{opacity:1;}
+  #about-orb{width:100%;height:260px;}
+  .term-input-row{display:flex;align-items:center;gap:8px;}
+  .term-input-row .prompt{color:var(--teal);}
+  #term-input{
+    background:transparent;border:none;outline:none;color:var(--text);font-family:'IBM Plex Mono',monospace;
+    font-size:0.86rem;flex:1;caret-color:var(--amber);
+  }
+  .term-hint{color:var(--text-dim);font-size:0.72rem;margin-top:10px;font-family:'IBM Plex Mono',monospace;}
+  .cmd-chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 22px 16px;}
+  .cmd-chip{
+    font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--teal);background:rgba(79,209,197,0.08);
+    border:1px solid rgba(79,209,197,0.3);padding:5px 12px;border-radius:100px;cursor:pointer;
+    transition:background .2s ease, transform .15s ease;
+  }
+  .cmd-chip:hover{background:rgba(79,209,197,0.18);transform:translateY(-1px);}
+  .cmd-chip:active{transform:translateY(0);}
+
+  /* clickable case files */
+  .case-file{cursor:pointer;}
+  .case-head{justify-content:space-between;width:100%;}
+  .case-head-left{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;}
+  .case-chevron{
+    color:var(--text-dim);transition:transform .3s ease;flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:1.1rem;
+  }
+  .case-file.open .case-chevron{transform:rotate(180deg);color:var(--amber);}
+  .case-detail{
+    max-height:0;overflow:hidden;transition:max-height .35s ease, opacity .3s ease, margin-top .35s ease;opacity:0;
+  }
+  .case-file.open .case-detail{max-height:200px;opacity:1;margin-top:16px;}
+  .case-detail-inner{
+    border-top:1px dashed var(--border-strong);padding-top:14px;font-size:0.9rem;color:var(--text);
+  }
+  .case-detail-inner .label{color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;margin-right:8px;}
+
+  /* clickable port rows */
+  .port-row{cursor:pointer;}
+  .port-row-head{display:contents;}
+  .port-arrow{color:var(--text-dim);transition:transform .3s ease;justify-self:end;font-family:'IBM Plex Mono',monospace;}
+  .port-row.open .port-arrow{transform:rotate(90deg);color:var(--amber);}
+  .port-detail{
+    grid-column:1 / -1;max-height:0;overflow:hidden;transition:max-height .35s ease, opacity .3s ease;opacity:0;
+    font-family:'Inter',sans-serif;font-size:0.85rem;color:var(--text-muted);
+  }
+  .port-row.open .port-detail{max-height:120px;opacity:1;margin-top:12px;}
+  .port-detail strong{color:var(--teal);}
+
+  /* flippable cert cards */
+  .cert-card{perspective:1000px;background:none;border:none;padding:0;}
+  .cert-flip-inner{
+    position:relative;width:100%;min-height:150px;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.25,.1,.25,1);
+    cursor:pointer;
+  }
+  .cert-card.flipped .cert-flip-inner{transform:rotateY(180deg);}
+  .cert-face{
+    position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--border);border-radius:14px;
+    padding:22px 24px;background:var(--bg-panel);display:flex;flex-direction:column;justify-content:center;
+  }
+  .cert-card.progress .cert-face{border-style:dashed;border-color:var(--border-strong);}
+  .cert-face-back{transform:rotateY(180deg);background:var(--bg-panel-2);justify-content:center;}
+  .cert-face-back p{font-size:0.85rem;color:var(--text-muted);line-height:1.6;}
+  .cert-face-back .flip-hint{color:var(--text-dim);font-size:0.68rem;font-family:'IBM Plex Mono',monospace;margin-top:12px;text-transform:uppercase;letter-spacing:0.06em;}
+  .cert-face .flip-hint{position:absolute;bottom:10px;right:14px;color:var(--text-dim);font-size:0.65rem;font-family:'IBM Plex Mono',monospace;}
+
+  /* copy-to-clipboard toast */
+  .contact-link{position:relative;}
+  .copy-toast{
+    position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(4px);
+    background:var(--amber);color:#0B0E13;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;font-weight:600;
+    padding:5px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;
+  }
+  .copy-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .scanline{
+    position:absolute;left:0;right:0;height:120px;
+    background:linear-gradient(180deg, rgba(255,176,32,0) 0%, rgba(255,176,32,0.06) 50%, rgba(255,176,32,0) 100%);
+    animation:scan 6s linear infinite;pointer-events:none;
+  }
+  @keyframes scan{0%{top:-120px;}100%{top:100%;}}
+
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;color:var(--teal);font-size:0.82rem;letter-spacing:0.14em;
+    text-transform:uppercase;margin-bottom:18px;opacity:0;animation:fadeUp .7s ease forwards;
+  }
+  .hero h1{
+    font-size:clamp(2.6rem, 7vw, 5.4rem);font-weight:800;line-height:1.02;letter-spacing:-0.02em;
+    opacity:0;animation:fadeUp .8s ease forwards .1s;
+  }
+  .hero h1 span{color:var(--amber);}
+  .hero-sub{
+    margin-top:22px;max-width:560px;color:var(--text-muted);font-size:clamp(0.95rem,1.6vw,1.15rem);line-height:1.6;
+    opacity:0;animation:fadeUp .8s ease forwards .2s;
+  }
+  .hero-cta{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap;opacity:0;animation:fadeUp .8s ease forwards .3s;}
+  .btn-primary{
+    position:relative;overflow:hidden;background:var(--amber);color:#0B0E13;font-family:'IBM Plex Mono',monospace;font-weight:600;
+    font-size:0.85rem;letter-spacing:0.05em;text-transform:uppercase;padding:13px 26px;border-radius:8px;
+    display:inline-flex;align-items:center;gap:8px;transition:transform .2s ease, box-shadow .2s ease;cursor:pointer;
+  }
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,176,32,0.25);}
+  .btn-primary:active{transform:translateY(0) scale(0.96);}
+  .btn-ghost{
+    position:relative;overflow:hidden;border:1px solid var(--border-strong);color:var(--text);font-family:'IBM Plex Mono',monospace;font-weight:500;
+    font-size:0.85rem;letter-spacing:0.05em;text-transform:uppercase;padding:13px 26px;border-radius:8px;
+    transition:border-color .2s ease, background .2s ease, transform .2s ease;cursor:pointer;
+  }
+  .btn-ghost:hover{border-color:var(--teal);background:rgba(79,209,197,0.06);transform:translateY(-2px);}
+  .btn-ghost:active{transform:translateY(0) scale(0.96);}
+  .ripple{
+    position:absolute;border-radius:50%;background:rgba(255,255,255,0.5);transform:scale(0);
+    animation:rippleFx .55s ease-out forwards;pointer-events:none;
+  }
+  .btn-ghost .ripple{background:rgba(79,209,197,0.35);}
+  @keyframes rippleFx{to{transform:scale(2.6);opacity:0;}}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
+  /* terminal panel */
+  .terminal{
+    margin-top:56px;background:var(--bg-panel);border:1px solid var(--border-strong);border-radius:14px;
+    max-width:640px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);
+    opacity:0;animation:fadeUp .8s ease forwards .4s;
+  }
+  .terminal-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg-panel-2);}
+  .terminal-bar span{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .terminal-bar span:nth-child(1){background:#FF6058;}
+  .terminal-bar span:nth-child(2){background:#FFC02E;}
+  .terminal-bar span:nth-child(3){background:#28C840;}
+  .terminal-bar .title{margin-left:8px;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--text-dim);}
+  .terminal-body{padding:20px 22px;font-family:'IBM Plex Mono',monospace;font-size:0.86rem;line-height:1.9;min-height:230px;max-height:360px;overflow-y:auto;}
+  .terminal-body .prompt{color:var(--teal);}
+  .terminal-body .out{color:var(--text-muted);}
+  .terminal-body .port-open{color:var(--amber);}
+  .terminal-body .cursor{display:inline-block;width:8px;height:15px;background:var(--amber);vertical-align:middle;animation:blink 1s step-end infinite;}
+  @keyframes blink{50%{opacity:0;}}
+  #terminal-lines div{opacity:0;white-space:pre-wrap;}
+
+  /* ---------- SECTION SHARED ---------- */
+  section{padding:100px 0;position:relative;scroll-margin-top:84px;}
+  .section-head{margin-bottom:56px;}
+  .section-tag{
+    font-family:'IBM Plex Mono',monospace;color:var(--teal);font-size:0.8rem;letter-spacing:0.14em;
+    text-transform:uppercase;margin-bottom:14px;
+  }
+  .section-tag::before{content:"// ";color:var(--text-dim);}
+  h2{font-size:clamp(2rem,4.5vw,3.2rem);font-weight:800;letter-spacing:-0.01em;}
+
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.25,.1,.25,1), transform .7s cubic-bezier(.25,.1,.25,1);}
+  .reveal.in{opacity:1;transform:translateY(0);}
+
+  /* ---------- ABOUT ---------- */
+  .about-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:56px;align-items:start;}
+  .about-text{color:var(--text-muted);font-size:1.05rem;line-height:1.85;}
+  .about-text strong{color:var(--text);font-weight:600;}
+  .edu-card{
+    background:var(--bg-panel);border:1px solid var(--border);border-radius:14px;padding:26px 28px;
+  }
+  .edu-card .edu-tag{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--amber);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;}
+  .edu-card h3{font-size:1.25rem;font-weight:700;margin-bottom:6px;}
+  .edu-card .school{color:var(--text-muted);font-size:0.95rem;margin-bottom:14px;}
+  .edu-card .grad{font-family:'IBM Plex Mono',monospace;font-size:0.8rem;color:var(--text-dim);border-top:1px solid var(--border);padding-top:14px;}
+  .interest-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;}
+  .interest-tags span{
+    font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--text-muted);border:1px solid var(--border-strong);
+    padding:6px 12px;border-radius:100px;
+  }
+
+  /* ---------- PROJECTS ---------- */
+  .case-file{
+    position:relative;border:1px solid var(--border);border-radius:16px;background:var(--bg-panel);
+    padding:30px 32px;margin-bottom:20px;transition:border-color .25s ease;
+  }
+  .case-head{display:flex;align-items:baseline;gap:16px;margin-bottom:14px;flex-wrap:wrap;}
+  .case-id{font-family:'IBM Plex Mono',monospace;color:var(--amber);font-size:0.85rem;letter-spacing:0.08em;}
+  .case-file h3{font-size:1.4rem;font-weight:700;}
+  .case-desc{color:var(--text-muted);line-height:1.7;margin-bottom:18px;font-size:0.98rem;}
+  .tool-tags{display:flex;flex-wrap:wrap;gap:8px;}
+  .tool-tags span{
+    font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--teal);background:rgba(79,209,197,0.08);
+    border:1px solid rgba(79,209,197,0.25);padding:5px 11px;border-radius:6px;
+  }
+
+  /* ---------- SKILLS (nmap style) ---------- */
+  .scan-panel{
+    background:var(--bg-panel);border:1px solid var(--border-strong);border-radius:16px;overflow:hidden;
+  }
+  .scan-header{
+    font-family:'IBM Plex Mono',monospace;font-size:0.8rem;color:var(--text-dim);padding:16px 24px;
+    border-bottom:1px solid var(--border);background:var(--bg-panel-2);
+  }
+  .port-row{
+    display:grid;grid-template-columns:110px 100px 1fr 24px;gap:18px;align-items:center;
+    padding:18px 24px;border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace;
+  }
+  .port-row:last-child{border-bottom:none;}
+  .port-num{color:var(--amber);font-weight:600;font-size:0.95rem;}
+  .port-state{color:var(--teal);font-size:0.78rem;letter-spacing:0.05em;text-transform:uppercase;}
+  .port-service{color:var(--text);font-size:0.85rem;font-weight:600;margin-bottom:6px;font-family:'Inter',sans-serif;}
+  .port-list{color:var(--text-muted);font-size:0.82rem;font-family:'Inter',sans-serif;line-height:1.6;}
+  @media (max-width:640px){.port-row{grid-template-columns:1fr;gap:4px;}}
+
+  .soft-skills{margin-top:36px;display:flex;flex-wrap:wrap;gap:10px;}
+  .soft-skills span{
+    font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--text-muted);border:1px dashed var(--border-strong);
+    padding:8px 14px;border-radius:100px;
+  }
+
+  /* ---------- CERTS ---------- */
+  .cert-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;}
+  .cert-card{
+    border:1px solid var(--border);border-radius:14px;padding:22px 24px;background:var(--bg-panel);
+    position:relative;
+  }
+  .cert-card.progress{border-style:dashed;border-color:var(--border-strong);}
+  .cert-badge{
+    font-family:'IBM Plex Mono',monospace;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;
+    color:var(--teal);background:rgba(79,209,197,0.1);border:1px solid rgba(79,209,197,0.3);
+    display:inline-block;padding:4px 10px;border-radius:100px;margin-bottom:12px;
+  }
+  .cert-card.progress .cert-badge{color:var(--amber);background:rgba(255,176,32,0.1);border-color:rgba(255,176,32,0.3);}
+  .cert-card h4{font-size:1.02rem;font-weight:700;margin-bottom:4px;line-height:1.35;}
+  .cert-card .cert-year{color:var(--text-dim);font-family:'IBM Plex Mono',monospace;font-size:0.78rem;}
+
+  .leadership{margin-top:44px;}
+  .leadership h3{font-family:'IBM Plex Mono',monospace;font-size:0.85rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:16px;}
+  .leadership ul{list-style:none;display:flex;flex-wrap:wrap;gap:10px;}
+  .leadership li{
+    font-size:0.88rem;color:var(--text-muted);border:1px solid var(--border);padding:9px 16px;border-radius:10px;
+  }
+
+  /* ---------- CONTACT ---------- */
+  .contact-panel{
+    background:linear-gradient(160deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+    border:1px solid var(--border-strong);border-radius:22px;padding:56px 48px;text-align:center;
+  }
+  .contact-panel h2{margin-bottom:16px;}
+  .contact-panel p{color:var(--text-muted);max-width:480px;margin:0 auto 34px;font-size:1.02rem;line-height:1.6;}
+  .contact-links{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;}
+  .contact-link{
+    display:flex;align-items:center;gap:10px;border:1px solid var(--border-strong);padding:13px 22px;
+    border-radius:100px;font-family:'IBM Plex Mono',monospace;font-size:0.85rem;transition:border-color .2s ease, color .2s ease;
+  }
+  .contact-link:hover{border-color:var(--amber);color:var(--amber);}
+  .contact-link svg{width:16px;height:16px;stroke:currentColor;}
+
+  footer{padding:32px 0;text-align:center;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;font-size:0.78rem;border-top:1px solid var(--border);}
+
+  @media (max-width:860px){
+    .about-grid{grid-template-columns:1fr;}
+    .nav-links{position:fixed;top:70px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);
+      flex-direction:column;padding:20px 24px;gap:18px;transform:translateY(-130%);transition:transform .3s ease;z-index:40;}
+    .nav-links.open{transform:translateY(0);}
+    .status-pill{display:none;}
+    .mobile-nav-toggle{display:block;}
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<header>
+  <nav>
+    <div class="logo"><span class="dot"></span>HP<span style="color:var(--text-dim)">_</span>security</div>
+    <div class="nav-links" id="navLinks">
+      <a href="#about">About</a>
+      <a href="#projects">Projects</a>
+      <a href="#skills">Skills</a>
+      <a href="#certifications">Certifications</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <div class="status-pill"><span class="blip"></span>available for internships</div>
+    <button class="mobile-nav-toggle" id="navToggle" aria-label="Toggle navigation">☰</button>
+  </nav>
+</header>
+
+<main>
+  <section class="hero wrap">
+    <canvas id="hero-canvas"></canvas>
+    <div class="scanline"></div>
+    <div class="wrap-inner">
+    <div class="eyebrow">systems &amp; security · norcross, georgia</div>
+    <h1>Harsh Patel<br><span>secures networks</span>, one packet at a time.</h1>
+    <p class="hero-sub">Computer Science student concentrating in cybersecurity — building hands-on experience in network reconnaissance, vulnerability assessment, and Linux system hardening. Comfortable in Wireshark, Nmap, and Kali Linux, and always looking for the next real-world problem to break and fix.</p>
+    <div class="hero-cta">
+      <a class="btn-primary" href="#contact">Get in touch →</a>
+      <a class="btn-ghost" href="#projects">View projects</a>
+    </div>
+
+    <div class="terminal">
+      <div class="terminal-bar"><span></span><span></span><span></span><span class="title">harsh@security-lab: ~</span></div>
+      <div class="terminal-body" id="terminal-lines">
+        <div><span class="prompt">$</span> whoami</div>
+        <div class="out">harsh_patel — b.s. systems &amp; security, exp. dec 2026</div>
+        <div><span class="prompt">$</span> nmap -sV harshpatel.dev</div>
+        <div class="out">Starting scan on 4 hosts...</div>
+        <div><span class="port-open">22/tcp   open</span>  <span class="out">ssh      — linux hardening &amp; access control</span></div>
+        <div><span class="port-open">443/tcp  open</span>  <span class="out">https    — network security &amp; architecture</span></div>
+        <div><span class="port-open">8080/tcp open</span>  <span class="out">http     — vulnerability assessment</span></div>
+        <div><span class="port-open">2121/tcp open</span>  <span class="out">ftp      — packet analysis (wireshark)</span></div>
+        <div><span class="prompt">$</span> echo $STATUS<span class="cursor"></span></div>
+      </div>
+      <div class="term-input-row" id="term-input-row" style="padding:0 22px 18px;display:none;">
+        <span class="prompt mono">$</span>
+        <input id="term-input" type="text" autocomplete="off" spellcheck="false" placeholder="type 'help'" />
+      </div>
+      <div class="term-hint" id="term-hint" style="padding:0 22px 18px;display:none;">try: help · whoami · skills · projects · contact · sudo hire-me · clear</div>
+    </div>
+    </div>
+  </section>
+
+  <section id="about" class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">cat about.md</div>
+      <h2>About</h2>
+    </div>
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p>I'm a detail-oriented Computer Science student concentrating in cybersecurity, with hands-on experience in <strong>network analysis, vulnerability assessment, and system security</strong>. I spend most of my project time in Wireshark and Nmap, working comfortably across Linux environments and network protocols.</p>
+        <br>
+        <p>What I enjoy most is turning security theory into practical, real-world projects — identifying threats, then actually fixing them and measuring the improvement in system performance.</p>
+        <div class="interest-tags">
+          <span>Cybersecurity</span><span>Ethical Hacking</span><span>Network Defense</span><span>CTF Participant</span>
+        </div>
+      </div>
+      <div class="edu-card reveal">
+        <div class="edu-tag">Education</div>
+        <h3>B.S., Systems &amp; Security</h3>
+        <div class="school">Georgia Gwinnett College — Lawrenceville, GA</div>
+        <div class="grad">Expected graduation: December 2026</div>
+        <canvas id="about-orb"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section id="projects" class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">ls ./case-files</div>
+      <h2>Projects</h2>
+    </div>
+
+    <div class="case-file reveal tilt-card"><div class="tilt-glow"></div>
+      <div class="case-head">
+        <div class="case-head-left"><span class="case-id">CASE-01</span><h3>Recon &amp; Vulnerability Scanning Automation Toolkit</h3></div>
+        <span class="case-chevron">▾</span>
+      </div>
+      <p class="case-desc">A Bash-based automation toolkit for network reconnaissance, built to streamline ping sweeps, port scanning, and service enumeration through a centralized controller script — with penetration-testing scenarios simulated in Kali Linux.</p>
+      <div class="tool-tags"><span>Bash</span><span>Nmap</span><span>Kali Linux</span></div>
+      <div class="case-detail"><div class="case-detail-inner"><span class="label">Impact</span>Consolidated a multi-step recon workflow into one repeatable script, cutting manual scan time and reducing setup errors.</div></div>
+    </div>
+
+    <div class="case-file reveal tilt-card"><div class="tilt-glow"></div>
+      <div class="case-head">
+        <div class="case-head-left"><span class="case-id">CASE-02</span><h3>Network Security Architecture Project</h3></div>
+        <span class="case-chevron">▾</span>
+      </div>
+      <p class="case-desc">Designed a secure enterprise network architecture with firewall configuration and intrusion detection, then ran vulnerability assessments across the network and implemented mitigations to shrink the attack surface.</p>
+      <div class="tool-tags"><span>Firewall Config</span><span>IDS</span><span>Vulnerability Assessment</span></div>
+      <div class="case-detail"><div class="case-detail-inner"><span class="label">Impact</span>Surfaced and remediated high-risk misconfigurations before they could be exploited, hardening the network's overall posture.</div></div>
+    </div>
+
+    <div class="case-file reveal tilt-card"><div class="tilt-glow"></div>
+      <div class="case-head">
+        <div class="case-head-left"><span class="case-id">CASE-03</span><h3>Packet Analysis using Wireshark</h3></div>
+        <span class="case-chevron">▾</span>
+      </div>
+      <p class="case-desc">Captured and analyzed live network traffic to understand real-time data transmission — identifying HTTP, DNS, and TCP protocols, observing TCP handshakes, and flagging anomalies at the packet level.</p>
+      <div class="tool-tags"><span>Wireshark</span><span>TCP/IP</span><span>Traffic Analysis</span></div>
+      <div class="case-detail"><div class="case-detail-inner"><span class="label">Impact</span>Caught protocol-level anomalies invisible at a higher level, sharpening packet-by-packet troubleshooting skills.</div></div>
+    </div>
+
+    <div class="case-file reveal tilt-card"><div class="tilt-glow"></div>
+      <div class="case-head">
+        <div class="case-head-left"><span class="case-id">CASE-04</span><h3>Port Scanning &amp; Network Enumeration using Nmap</h3></div>
+        <span class="case-chevron">▾</span>
+      </div>
+      <p class="case-desc">Performed network scanning to identify open ports and active services, using service and OS detection to surface potential vulnerabilities and build hands-on reconnaissance experience.</p>
+      <div class="tool-tags"><span>Nmap</span><span>Service Detection</span><span>OS Fingerprinting</span></div>
+      <div class="case-detail"><div class="case-detail-inner"><span class="label">Impact</span>Mapped the full attack surface of target hosts, producing a prioritized list of services to lock down.</div></div>
+    </div>
+
+    <div class="case-file reveal tilt-card"><div class="tilt-glow"></div>
+      <div class="case-head">
+        <div class="case-head-left"><span class="case-id">CASE-05</span><h3>Linux System Hardening &amp; Security Configuration</h3></div>
+        <span class="case-chevron">▾</span>
+      </div>
+      <p class="case-desc">Configured user permissions and access controls, enabled and managed firewall rules with UFW, disabled unnecessary services, and applied updates to reduce the overall vulnerability footprint of the system.</p>
+      <div class="tool-tags"><span>UFW</span><span>Access Control</span><span>Linux</span></div>
+      <div class="case-detail"><div class="case-detail-inner"><span class="label">Impact</span>Shrunk the system's vulnerability footprint by tightening permissions, closing unused services, and enforcing firewall rules.</div></div>
+    </div>
+  </section>
+
+  <section id="skills" class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">nmap -sV skillset</div>
+      <h2>Skills</h2>
+    </div>
+    <div class="scan-panel reveal">
+      <div class="scan-header">PORT SCAN REPORT — 5 categories scanned, 5 open</div>
+
+      <div class="port-row">
+        <div class="port-row-head">
+          <div class="port-num">21/tcp</div>
+          <div class="port-state">open</div>
+          <div><div class="port-service">Languages</div><div class="port-list">Python, C++, C, Java, Bash/Shell</div></div>
+          <div class="port-arrow">▸</div>
+        </div>
+        <div class="port-detail"><strong>Service info:</strong> Comfortable writing scripts and small tools across systems-level and scripting languages — used daily for automation and coursework.</div>
+      </div>
+      <div class="port-row">
+        <div class="port-row-head">
+          <div class="port-num">22/tcp</div>
+          <div class="port-state">open</div>
+          <div><div class="port-service">Operating Systems</div><div class="port-list">Kali Linux, Ubuntu, Windows, macOS</div></div>
+          <div class="port-arrow">▸</div>
+        </div>
+        <div class="port-detail"><strong>Service info:</strong> Kali Linux and Ubuntu for security tooling and labs; Windows and macOS for day-to-day and cross-platform testing.</div>
+      </div>
+      <div class="port-row">
+        <div class="port-row-head">
+          <div class="port-num">80/tcp</div>
+          <div class="port-state">open</div>
+          <div><div class="port-service">Networking</div><div class="port-list">TCP/IP, Routing &amp; Switching</div></div>
+          <div class="port-arrow">▸</div>
+        </div>
+        <div class="port-detail"><strong>Service info:</strong> Solid grounding in how traffic actually moves — subnetting, routing decisions, and the TCP/IP stack end to end.</div>
+      </div>
+      <div class="port-row">
+        <div class="port-row-head">
+          <div class="port-num">443/tcp</div>
+          <div class="port-state">open</div>
+          <div><div class="port-service">Tools</div><div class="port-list">Wireshark, Nmap</div></div>
+          <div class="port-arrow">▸</div>
+        </div>
+        <div class="port-detail"><strong>Service info:</strong> Wireshark for packet-level inspection, Nmap for reconnaissance and service enumeration — the two tools behind most of the projects above.</div>
+      </div>
+      <div class="port-row">
+        <div class="port-row-head">
+          <div class="port-num">3389/tcp</div>
+          <div class="port-state">open</div>
+          <div><div class="port-service">Security</div><div class="port-list">Network Security, Vulnerability Assessment, Log Analysis, Threat Detection, System Hardening</div></div>
+          <div class="port-arrow">▸</div>
+        </div>
+        <div class="port-detail"><strong>Service info:</strong> The core focus area: finding weaknesses before they're exploited, then locking systems down.</div>
+      </div>
+    </div>
+    <div class="soft-skills reveal">
+      <span>Problem-solving</span><span>Teamwork</span><span>Adaptability</span><span>Communication</span>
+    </div>
+  </section>
+
+  <section id="certifications" class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">verify --all</div>
+      <h2>Certifications</h2>
+    </div>
+    <div class="cert-grid">
+      <div class="cert-card reveal">
+        <div class="cert-flip-inner">
+          <div class="cert-face cert-face-front">
+            <div class="cert-badge">Verified</div>
+            <h4>Certiport IT Specialist — Cybersecurity</h4>
+            <div class="cert-year">2024</div>
+            <span class="flip-hint">click to flip ↻</span>
+          </div>
+          <div class="cert-face cert-face-back">
+            <p>Covers core cybersecurity fundamentals: threat types, security best practices, and safe network/device configuration.</p>
+            <span class="flip-hint">← back to front</span>
+          </div>
+        </div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-flip-inner">
+          <div class="cert-face cert-face-front">
+            <div class="cert-badge">Verified</div>
+            <h4>Certiport IT Specialist — Networking</h4>
+            <div class="cert-year">2025</div>
+            <span class="flip-hint">click to flip ↻</span>
+          </div>
+          <div class="cert-face cert-face-back">
+            <p>Validates networking fundamentals — protocols, network types, hardware, and troubleshooting basics.</p>
+            <span class="flip-hint">← back to front</span>
+          </div>
+        </div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-flip-inner">
+          <div class="cert-face cert-face-front">
+            <div class="cert-badge">Verified</div>
+            <h4>Deloitte Australia Cyber Job Simulation (Forage)</h4>
+            <div class="cert-year">2025</div>
+            <span class="flip-hint">click to flip ↻</span>
+          </div>
+          <div class="cert-face cert-face-back">
+            <p>Simulated real Deloitte cyber-risk work: identifying vulnerabilities and communicating findings like an analyst would.</p>
+            <span class="flip-hint">← back to front</span>
+          </div>
+        </div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-flip-inner">
+          <div class="cert-face cert-face-front">
+            <div class="cert-badge">Verified</div>
+            <h4>AWS Certified Cloud Practitioner</h4>
+            <div class="cert-year">2026</div>
+            <span class="flip-hint">click to flip ↻</span>
+          </div>
+          <div class="cert-face cert-face-back">
+            <p>Foundational AWS knowledge — core services, security, pricing, and cloud architecture best practices.</p>
+            <span class="flip-hint">← back to front</span>
+          </div>
+        </div>
+      </div>
+      <div class="cert-card progress reveal">
+        <div class="cert-flip-inner">
+          <div class="cert-face cert-face-front">
+            <div class="cert-badge">In Progress</div>
+            <h4>CompTIA CySA+</h4>
+            <div class="cert-year">Expected 2026</div>
+            <span class="flip-hint">click to flip ↻</span>
+          </div>
+          <div class="cert-face cert-face-back">
+            <p>Behavioral analytics-focused cert covering threat detection, analysis, and incident response — currently studying toward it.</p>
+            <span class="flip-hint">← back to front</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="leadership reveal">
+      <h3>Leadership &amp; Activities</h3>
+      <ul>
+        <li>Cybersecurity Club Member</li>
+        <li>Capture-The-Flag (CTF) Participant</li>
+        <li>Technical Workshop Attendee</li>
+        <li>College Model Participant</li>
+        <li>Event Volunteer</li>
+        <li>Campus Event Coordination</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="contact" class="wrap">
+    <div class="contact-panel reveal">
+      <h2>Let's connect.</h2>
+      <p>Open to cybersecurity internships and entry-level opportunities in network security, vulnerability assessment, and system hardening.</p>
+      <div class="contact-links">
+        <a class="contact-link" href="mailto:patelharry080@gmail.com" data-copy="patelharry080@gmail.com">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 4l8 8 8-8"/></svg>
+          patelharry080@gmail.com
+          <span class="copy-toast">Copied!</span>
+        </a>
+        <a class="contact-link" href="tel:4705356094" data-copy="4705356094">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.77.63 2.61a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.47-1.2a2 2 0 0 1 2.11-.45c.84.3 1.71.51 2.61.63A2 2 0 0 1 22 16.92z"/></svg>
+          (470) 535-6094
+          <span class="copy-toast">Copied!</span>
+        </a>
+        <a class="contact-link" href="https://www.linkedin.com/in/harsh-patel-243324328/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/><path d="M10 9h4v2s1-2 4-2 5 2 5 6v6h-4v-6c0-1-1-2-2-2s-2 1-2 2v6h-4z"/></svg>
+          LinkedIn
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Norcross, Georgia · Harsh Patel © 2026
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+  // mobile nav toggle
+  const toggle = document.getElementById('navToggle');
+  const links = document.getElementById('navLinks');
+  toggle.addEventListener('click', () => links.classList.toggle('open'));
+  links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => links.classList.remove('open')));
+
+  // scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  revealEls.forEach(el => io.observe(el));
+
+  // terminal boot sequence — stagger line reveal
+  const lines = document.querySelectorAll('#terminal-lines > div');
+  lines.forEach((line, i) => {
+    line.style.animation = `fadeUp .5s ease forwards ${i * 0.35 + 0.5}s`;
+  });
+
+  // typed status word after boot completes
+  const statusWords = ['OPEN_TO_WORK', 'SEEKING_INTERNSHIP', 'READY_TO_DEPLOY'];
+  let wi = 0;
+  const cursorEl = document.querySelector('.terminal-body .cursor');
+  function typeStatus() {
+    if (!cursorEl) return;
+    const word = statusWords[wi % statusWords.length];
+    let ci = 0;
+    const existing = cursorEl.parentElement.querySelector('.status-word');
+    if (existing) existing.remove();
+    const span = document.createElement('span');
+    span.className = 'status-word port-open';
+    cursorEl.parentElement.insertBefore(span, cursorEl);
+    const iv = setInterval(() => {
+      span.textContent = word.slice(0, ++ci);
+      if (ci >= word.length) {
+        clearInterval(iv);
+        setTimeout(() => {
+          const eraseIv = setInterval(() => {
+            span.textContent = span.textContent.slice(0, -1);
+            if (span.textContent.length === 0) {
+              clearInterval(eraseIv);
+              wi++;
+              setTimeout(typeStatus, 400);
+            }
+          }, 40);
+        }, 1800);
+      }
+    }, 70);
+  }
+  setTimeout(typeStatus, lines.length * 350 + 900);
+
+  // ---------- 3D NETWORK GLOBE (hero background) ----------
+  (function initHeroGlobe(){
+    const canvas = document.getElementById('hero-canvas');
+    if (!canvas || typeof THREE === 'undefined') return;
+    const heroSection = canvas.closest('.hero');
+
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    camera.position.z = 9;
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    // scatter points on a sphere
+    const RADIUS = 4.2;
+    const POINT_COUNT = 140;
+    const points = [];
+    for (let i = 0; i < POINT_COUNT; i++) {
+      const phi = Math.acos(-1 + (2 * i) / POINT_COUNT);
+      const theta = Math.sqrt(POINT_COUNT * Math.PI) * phi;
+      const x = RADIUS * Math.cos(theta) * Math.sin(phi);
+      const y = RADIUS * Math.sin(theta) * Math.sin(phi);
+      const z = RADIUS * Math.cos(phi);
+      points.push(new THREE.Vector3(x, y, z));
+    }
+
+    // node dots
+    const dotGeo = new THREE.BufferGeometry().setFromPoints(points);
+    const dotMat = new THREE.PointsMaterial({ color: 0xFFB020, size: 0.075, transparent: true, opacity: 0.9 });
+    const dots = new THREE.Points(dotGeo, dotMat);
+    group.add(dots);
+
+    // connect nearby nodes with thin lines (network look)
+    const lineVerts = [];
+    const maxDist = 1.65;
+    for (let i = 0; i < points.length; i++) {
+      for (let j = i + 1; j < points.length; j++) {
+        if (points[i].distanceTo(points[j]) < maxDist) {
+          lineVerts.push(points[i].x, points[i].y, points[i].z);
+          lineVerts.push(points[j].x, points[j].y, points[j].z);
+        }
+      }
+    }
+    const lineGeo = new THREE.BufferGeometry();
+    lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(lineVerts, 3));
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x4FD1C5, transparent: true, opacity: 0.18 });
+    const lines = new THREE.LineSegments(lineGeo, lineMat);
+    group.add(lines);
+
+    // faint outer wireframe shell
+    const shellGeo = new THREE.IcosahedronGeometry(RADIUS + 0.55, 1);
+    const shellMat = new THREE.MeshBasicMaterial({ color: 0x2A3440, wireframe: true, transparent: true, opacity: 0.25 });
+    const shell = new THREE.Mesh(shellGeo, shellMat);
+    group.add(shell);
+
+    let targetRotX = 0, targetRotY = 0;
+    window.addEventListener('mousemove', (e) => {
+      const nx = (e.clientX / window.innerWidth) * 2 - 1;
+      const ny = (e.clientY / window.innerHeight) * 2 - 1;
+      targetRotY = nx * 0.35;
+      targetRotX = ny * 0.2;
+    });
+
+    function resize() {
+      const w = heroSection.clientWidth;
+      const h = heroSection.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    let raf;
+    function animate() {
+      raf = requestAnimationFrame(animate);
+      group.rotation.y += 0.0016;
+      group.rotation.y += (targetRotY - 0) * 0.002;
+      group.rotation.x += (targetRotX - group.rotation.x) * 0.02;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // pause rendering when hero is off-screen (perf)
+    const visObserver = new IntersectionObserver((entries) => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) cancelAnimationFrame(raf);
+        else animate();
+      });
+    }, { threshold: 0 });
+    visObserver.observe(heroSection);
+  })();
+
+  // ---------- 3D ROTATING ORB (about section) ----------
+  (function initAboutOrb(){
+    const canvas = document.getElementById('about-orb');
+    if (!canvas || typeof THREE === 'undefined') return;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 50);
+    camera.position.z = 5;
+
+    const geo = new THREE.IcosahedronGeometry(1.5, 1);
+    const wireMat = new THREE.MeshBasicMaterial({ color: 0xFFB020, wireframe: true, transparent: true, opacity: 0.85 });
+    const wire = new THREE.Mesh(geo, wireMat);
+    scene.add(wire);
+
+    const innerGeo = new THREE.IcosahedronGeometry(1.05, 0);
+    const innerMat = new THREE.MeshBasicMaterial({ color: 0x4FD1C5, wireframe: true, transparent: true, opacity: 0.4 });
+    const inner = new THREE.Mesh(innerGeo, innerMat);
+    scene.add(inner);
+
+    function resize() {
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / (h || 1);
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    let raf;
+    function animate() {
+      raf = requestAnimationFrame(animate);
+      wire.rotation.x += 0.004;
+      wire.rotation.y += 0.006;
+      inner.rotation.x -= 0.003;
+      inner.rotation.y -= 0.005;
+      renderer.render(scene, camera);
+    }
+    const io2 = new IntersectionObserver((entries) => {
+      entries.forEach(en => {
+        if (en.isIntersecting) { if (!raf) animate(); } else { cancelAnimationFrame(raf); raf = null; }
+      });
+    }, { threshold: 0 });
+    io2.observe(canvas);
+  })();
+
+  // ---------- 3D TILT ON CARDS ----------
+  document.querySelectorAll('.tilt-card').forEach(card => {
+    const strength = 10; // degrees
+    card.addEventListener('pointermove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const px = (e.clientX - rect.left) / rect.width;
+      const py = (e.clientY - rect.top) / rect.height;
+      const rotY = (px - 0.5) * strength;
+      const rotX = (0.5 - py) * strength;
+      card.style.transform = `perspective(700px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-4px)`;
+      card.style.setProperty('--mx', `${px * 100}%`);
+      card.style.setProperty('--my', `${py * 100}%`);
+    });
+    card.addEventListener('pointerleave', () => {
+      card.style.transform = 'perspective(700px) rotateX(0deg) rotateY(0deg) translateY(0)';
+    });
+  });
+
+  // ---------- INTERACTIVE TERMINAL ----------
+  (function initTerminalInput(){
+    const inputRow = document.getElementById('term-input-row');
+    const hint = document.getElementById('term-hint');
+    const input = document.getElementById('term-input');
+    const body = document.querySelector('.terminal-body');
+
+    // reveal the live prompt after the boot sequence finishes typing
+    setTimeout(() => {
+      inputRow.style.display = 'flex';
+      hint.style.display = 'block';
+    }, lines.length * 350 + 1400);
+
+    const responses = {
+      help: "available commands: whoami, skills, projects, certifications, contact, sudo hire-me, clear",
+      whoami: "harsh_patel — b.s. systems & security @ georgia gwinnett college, exp. dec 2026",
+      skills: "python · c++ · c · java · bash · linux (kali/ubuntu) · wireshark · nmap · network security",
+      projects: "5 case files on file — scroll to #projects or type 'open projects'",
+      "open projects": "→ scrolling to projects...",
+      certifications: "certiport cybersecurity (2024) · certiport networking (2025) · deloitte cyber sim (2025) · aws cloud practitioner (2026) · comptia cysa+ (in progress)",
+      contact: "patelharry080@gmail.com · (470) 535-6094 · linkedin.com/in/harsh-patel-243324328",
+      "sudo hire-me": "permission granted. redirecting to #contact...",
+      clear: "__CLEAR__"
+    };
+
+    function appendLine(text, cls) {
+      const div = document.createElement('div');
+      if (cls) div.className = cls;
+      div.textContent = text;
+      body.insertBefore(div, inputRow);
+    }
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      const raw = input.value.trim();
+      if (!raw) return;
+      appendLine('$ ' + raw, 'out');
+      const key = raw.toLowerCase();
+      const resp = responses[key];
+
+      if (key === 'clear') {
+        document.querySelectorAll('#terminal-lines > div, .terminal-body > div.out, .terminal-body > div.status-word')
+          .forEach(el => { if (el.parentElement === body && el !== inputRow) el.remove(); });
+      } else if (resp) {
+        appendLine(resp, 'out port-open');
+        if (key === 'open projects') { setTimeout(() => document.getElementById('projects').scrollIntoView({behavior:'smooth'}), 400); }
+        if (key === 'sudo hire-me') { setTimeout(() => document.getElementById('contact').scrollIntoView({behavior:'smooth'}), 400); }
+      } else {
+        appendLine(`command not found: ${raw} — try 'help'`, 'out');
+      }
+      input.value = '';
+      body.scrollTop = body.scrollHeight;
+    });
+  })();
+
+  // ---------- CLICK: HERO CTA RIPPLE + SMOOTH SCROLL ----------
+  document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      const rect = btn.getBoundingClientRect();
+      const ripple = document.createElement('span');
+      const size = Math.max(rect.width, rect.height) * 1.2;
+      ripple.className = 'ripple';
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+      ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+      btn.appendChild(ripple);
+      ripple.addEventListener('animationend', () => ripple.remove());
+
+      const targetId = btn.getAttribute('href');
+      if (targetId && targetId.startsWith('#')) {
+        e.preventDefault();
+        const target = document.querySelector(targetId);
+        if (target) setTimeout(() => target.scrollIntoView({ behavior: 'smooth' }), 120);
+      }
+    });
+  });
+
+  document.querySelectorAll('.case-file').forEach(card => {
+    const head = card.querySelector('.case-head');
+    head.addEventListener('click', () => card.classList.toggle('open'));
+  });
+
+  // ---------- CLICK: SKILL PORT ROWS (accordion) ----------
+  document.querySelectorAll('.port-row').forEach(row => {
+    row.addEventListener('click', () => row.classList.toggle('open'));
+  });
+
+  // ---------- CLICK: CERTIFICATION CARDS (3D flip) ----------
+  document.querySelectorAll('.cert-card').forEach(card => {
+    card.addEventListener('click', () => card.classList.toggle('flipped'));
+  });
+
+  // ---------- CLICK: COPY CONTACT INFO ----------
+  document.querySelectorAll('.contact-link[data-copy]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const value = link.getAttribute('data-copy');
+      const toast = link.querySelector('.copy-toast');
+      const finish = () => {
+        if (!toast) return;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(value).then(finish).catch(finish);
+      } else {
+        finish();
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
